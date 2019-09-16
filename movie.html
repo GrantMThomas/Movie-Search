@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Movies</title>
+</head>
+<body>
+
+    <div class = "search">
+        <form>
+            <div class="form-group" id="form">
+                <label for="exampleInputEmail1"> Movie Search</label>
+                <input id = "moviesearch" class="form-control searchbar" placeholder="Enter a name...">
+                
+            </div>
+            <div>
+                    <button type="submit" class="btn btn-primary" onclick="return search()">Search</button>
+            </div>  
+            <div id = "displaying">
+                
+            </div>
+        </form>
+
+    </div>
+
+    <div class="container" id = "main">
+        <div class="row" id = "row">
+           
+     
+        </div>
+        
+    </div>
+
+    <script>
+        
+        ajax("https://api.themoviedb.org/3/movie/now_playing?api_key=23dbd5682cf640400787240e583312ce&language=en-US&page=1", display);
+        function search(){
+            let val = document.getElementById("moviesearch").value;
+            console.log(val);
+
+            let url = "https://api.themoviedb.org/3/search/movie?api_key=23dbd5682cf640400787240e583312ce&language=en-US&query=" + val +"&page=1&include_adult=false";
+            ajax(url, display);
+
+			return false;
+        } 
+        function display(results){
+
+        }
+
+        function ajax(endpoint, func){
+            let xhr = new XMLHttpRequest();
+            
+        
+            xhr.open("GET",endpoint);
+			xhr.send();
+
+            xhr.onreadystatechange = function(){
+
+                
+				if(this.readyState == this.DONE){
+					if(xhr.status == 200){
+						//Got a successful resonse
+						console.log(xhr.responseText);
+
+						//Convert the response JSON string to JS objects
+						let responseObjects = JSON.parse(xhr.responseText);
+						//console.log(responseObjects);
+						//displayResults(responseObjects);
+                        
+                        func(responseObjects);
+					}
+					else {
+						console.log("Error");
+						console.log(xhr.status);
+
+					}
+				}
+			}
+            
+        }
+        
+
+        function display(results){
+            clear();
+            console.log(results);
+            var size = Math.min(20, results.total_results);
+            
+            document.getElementById("displaying").innerHTML = "Displaying <b>" + size + "</b> out of <b>" + results.total_results + "</b> results";  
+            for(let i = 0; i < size; i++){
+                
+                var column = document.createElement("div");
+                column.className = "col-6 col-sm-4 col-md-3 con";
+
+                let poster;
+                if(results.results[i].poster_path == "" || results.results[i].poster_path == null){
+                    poster = "images/notavailable.png"
+                }
+                else{
+                    poster = "https://image.tmdb.org/t/p/w500/" + results.results[i].poster_path;
+                }
+                var content = document.createElement("div");
+                content.className = "content";
+                var image = document.createElement("img");
+                image.src = poster;
+                image.className = "img";
+
+                var overlay = document.createElement("div");
+                overlay.className = "overlay";
+
+                
+                let rating = "Rating: " + results.results[i].vote_average + " from " + results.results[i].vote_count + " ratings";
+
+                var desc = document.createElement("div");
+                desc.className = "desc";
+                let description = results.results[i].overview;
+                if(description.length > 200){
+                    description = description.slice(0,200) + "...";
+                }
+                desc.innerHTML = "<b>" + rating + "</b>" + "</br>" + description;
+
+                var movietitle = document.createElement("div");
+                movietitle.className = "movietitle";
+                movietitle.innerHTML = results.results[i].title;
+            
+                var moviedate = document.createElement("div");
+                moviedate.className = "movietitle";
+                moviedate.innerHTML = results.results[i].release_date;
+
+                
+                overlay.appendChild(desc);
+                content.appendChild(image);
+                content.appendChild(overlay);
+                column.appendChild(content);
+                column.appendChild(movietitle);
+                column.appendChild(moviedate);
+                document.getElementById("row").appendChild(column);
+          
+            }
+           
+           //console.log(poster);
+        }
+
+        function clear(){
+            var row = document.getElementById("row");
+            while(row.firstChild){
+                row.removeChild(row.firstChild);
+            }
+        }
+    </script>
+    
+</body>
+</html>
